@@ -1,7 +1,7 @@
 const express = require("express");
 const cors = require("cors");
 const bcrypt = require("bcrypt");
-const { MongoClient } = require("mongodb");
+const { MongoClient, ObjectId } = require("mongodb");
 require("dotenv").config();
 const jwt = require("jsonwebtoken");
 
@@ -27,6 +27,9 @@ async function run() {
 
     const db = client.db("portfolio");
     const collection = db.collection("users");
+    const skillsCollection = client.db("portfolio").collection("skills");
+    const blogsCollection = client.db("portfolio").collection("blogs");
+    const projectsCollection = client.db("portfolio").collection("projects");
 
     // User Registration
     app.post("/api/v1/register", async (req, res) => {
@@ -85,6 +88,165 @@ async function run() {
     // WRITE YOUR CODE HERE
     // ==============================================================
 
+    app.get("/skills", async (req, res) => {
+      try {
+        const result = await skillsCollection.find().toArray();
+        res.status(200).send(result);
+      } catch (error) {
+        console.error("Error:", error);
+        res.status(500).send({ message: "Internal server error" });
+      }
+    });
+
+    app.post("/add-skills", async (req, res) => {
+      const addedSkills = req.body;
+      const result = await skillsCollection.insertOne(addedSkills);
+      res.status(200).send(result);
+    });
+
+    app.put("/update-skills/:id", async (req, res) => {
+      try {
+        const id = req.params.id;
+        const filter = { _id: new ObjectId(id) };
+        const updatedSkillData = req.body;
+
+        const updatedDetails = {
+          $set: {
+            title: updatedSkillData.title,
+            imageUrl: updatedSkillData.imageUrl,
+          },
+        };
+        const result = await skillsCollection.updateOne(filter, updatedDetails);
+        res.status(200).send(result);
+      } catch (error) {
+        console.error("Error:", error);
+        res.status(500).send({ message: "Internal server error" });
+      }
+    });
+
+    app.delete("/delete-skills/:id", async (req, res) => {
+      try {
+        const id = req.params.id;
+        const query = { _id: new ObjectId(id) };
+        const result = await skillsCollection.deleteOne(query);
+        console.log(id, query, result);
+        res.status(200).send(result);
+      } catch (error) {
+        console.error("Error:", error);
+        res.status(500).send({ message: "Internal server error" });
+      }
+    });
+
+    app.get("/blogs", async (req, res) => {
+      try {
+        const result = await blogsCollection.find().toArray();
+        res.status(200).send(result);
+      } catch (error) {
+        console.error("Error:", error);
+        res.status(500).send({ message: "Internal server error" });
+      }
+    });
+
+    app.post("/add-blogs", async (req, res) => {
+      const addedBlogs = req.body;
+      const time_published = new Date().toLocaleDateString("en-CA");
+      const addedBlogwithTime = { ...addedBlogs, time_published };
+      const result = await blogsCollection.insertOne(addedBlogwithTime);
+      res.status(200).send(result);
+    });
+
+    app.put("/update-blogs/:id", async (req, res) => {
+      try {
+        const id = req.params.id;
+        const filter = { _id: new ObjectId(id) };
+        const updatedBlogData = req.body;
+
+        const updatedDetails = {
+          $set: {
+            blog_name: updatedBlogData.blog_name,
+            blog_image: updatedBlogData.blog_image,
+            blog_description: updatedBlogData.blog_description,
+          },
+        };
+        const result = await blogsCollection.updateOne(filter, updatedDetails);
+        res.status(200).send(result);
+      } catch (error) {
+        console.error("Error:", error);
+        res.status(500).send({ message: "Internal server error" });
+      }
+    });
+
+    app.delete("/delete-blogs/:id", async (req, res) => {
+      try {
+        const id = req.params.id;
+        const query = { _id: new ObjectId(id) };
+        const result = await blogsCollection.deleteOne(query);
+        console.log(id, query, result);
+        res.status(200).send(result);
+      } catch (error) {
+        console.error("Error:", error);
+        res.status(500).send({ message: "Internal server error" });
+      }
+    });
+
+    app.get("/projects", async (req, res) => {
+      try {
+        const result = await projectsCollection.find().toArray();
+        res.status(200).send(result);
+      } catch (error) {
+        console.error("Error:", error);
+        res.status(500).send({ message: "Internal server error" });
+      }
+    });
+
+    app.post("/add-projects", async (req, res) => {
+      const addedBlogs = req.body;
+      const result = await projectsCollection.insertOne(addedBlogs);
+      res.status(200).send(result);
+    });
+
+    app.put("/update-projects/:id", async (req, res) => {
+      try {
+        const id = req.params.id;
+        const filter = { _id: new ObjectId(id) };
+        const updatedProjectData = req.body;
+        const filteredFeatures = updatedProjectData.features.filter(
+          (feature) => feature !== ""
+        );
+        const updatedDetails = {
+          $set: {
+            project_name: updatedProjectData.project_name,
+            project_image: updatedProjectData.project_image,
+            project_description: updatedProjectData.project_description,
+            features: filteredFeatures,
+            github_link: updatedProjectData.github_link,
+            deploy_link: updatedProjectData.deploy_link,
+          },
+        };
+        const result = await projectsCollection.updateOne(
+          filter,
+          updatedDetails
+        );
+        res.status(200).send(result);
+      } catch (error) {
+        console.error("Error:", error);
+        res.status(500).send({ message: "Internal server error" });
+      }
+    });
+
+    app.delete("/delete-projects/:id", async (req, res) => {
+      try {
+        const id = req.params.id;
+        const query = { _id: new ObjectId(id) };
+        const result = await projectsCollection.deleteOne(query);
+        console.log(id, query, result);
+        res.status(200).send(result);
+      } catch (error) {
+        console.error("Error:", error);
+        res.status(500).send({ message: "Internal server error" });
+      }
+    });
+
     // Start the server
     app.listen(port, () => {
       console.log(`Server is running on http://localhost:${port}`);
@@ -99,7 +261,7 @@ run().catch(console.dir);
 app.get("/", (req, res) => {
   const serverStatus = {
     message: "Server is running smoothly",
-    timestamp: new Date(),
+    timestamp: new Date().toLocaleDateString("en-CA"),
   };
   res.json(serverStatus);
 });
