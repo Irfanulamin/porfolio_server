@@ -147,6 +147,21 @@ async function run() {
       }
     });
 
+    app.get("/blogs/:id", async (req, res) => {
+      try {
+        const id = req.params.id; // Get the _id from request parameters
+        const result = await blogsCollection.findOne({ _id: ObjectId(id) }); // Find the blog by _id
+        if (result) {
+          res.status(200).send(result);
+        } else {
+          res.status(404).send({ message: "Blog not found" });
+        }
+      } catch (error) {
+        console.error("Error:", error);
+        res.status(500).send({ message: "Internal server error" });
+      }
+    });
+
     app.post("/add-blogs", async (req, res) => {
       const addedBlogs = req.body;
       const time_published = new Date().toLocaleDateString("en-CA");
