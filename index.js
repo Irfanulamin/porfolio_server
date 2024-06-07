@@ -148,14 +148,11 @@ async function run() {
     });
 
     app.get("/blogs/:id", async (req, res) => {
+      const id = req.params.id;
+      const query = { _id: new ObjectId(id) };
       try {
-        const id = req.params.id; // Get the _id from request parameters
-        const result = await blogsCollection.findOne({ _id: ObjectId(id) }); // Find the blog by _id
-        if (result) {
-          res.status(200).send(result);
-        } else {
-          res.status(404).send({ message: "Blog not found" });
-        }
+        const result = await blogsCollection.findOne(query);
+        res.status(200).send(result);
       } catch (error) {
         console.error("Error:", error);
         res.status(500).send({ message: "Internal server error" });
